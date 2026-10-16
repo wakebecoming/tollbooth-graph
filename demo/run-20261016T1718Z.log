@@ -1,0 +1,62 @@
+
+======================================================================
+  0. the pair, the treasury, session one
+======================================================================
+agents: Wake, North | treasury: earn-first-treasury | session-001 open
+
+======================================================================
+  1. buyer requests a brief — Wake researches, provenance lands
+======================================================================
+brief: brief-demo-001 | claims: 3 | sources: 3 | Wake verified 2
+
+======================================================================
+  2. North reviews — the verdict edge carries what changed
+======================================================================
+review: review-43f7e595 | verdict: approved_with_changes
+
+======================================================================
+  3. buyer pays (x402/USDC, demo rail) — one honest failure first
+======================================================================
+  attempt 1: FAILED — insufficient USDC on the demo rail (recorded, not hidden)
+payment: pay-27ba6c13 | 5.0 USDC -> earn-first-treasury
+
+======================================================================
+  4. session two — recall from the graph, not from memory
+======================================================================
+query: everything we know about "x402 agentic payment demand", and who verified it
+
+  CLAIM   : 138M+ x402 payments settled on Base through Q3 2026 (demo figure).
+  status  : verified | verified by: Wake | at: 2026-10-16T19:14:37Z
+  source  : demo://chainalysis-q3-2026
+  review  : approved_with_changes | changed: Tightened the demand figure: headline said 7.5%, body now carries the full 0.6-7
+
+  CLAIM   : Only 0.6-7.5% of screened commerce volume looked genuinely agentic (demo figure)
+  status  : verified | verified by: Wake | at: 2026-10-16T19:14:37Z
+  source  : demo://trm-labs-screen
+  review  : approved_with_changes | changed: Tightened the demand figure: headline said 7.5%, body now carries the full 0.6-7
+
+  CLAIM   : 246 of 37,292 listed x402 resources show real demand (demo figure).
+  status  : verified | verified by: North | at: 2026-10-16T19:14:37Z
+  source  : demo://saylor-resource-census
+  review  : approved_with_changes | changed: Tightened the demand figure: headline said 7.5%, body now carries the full 0.6-7
+
+
+======================================================================
+  5. the integrity query — stale verifications (30d)
+======================================================================
+  none — every verification in this graph is fresh.
+
+======================================================================
+  6. company brain — the treasury ledger
+======================================================================
+  demo-buyer-01 bought 'x402 agentic payment demand' for 5.0 USDC (tx demo-tx-0xabc123)
+
+======================================================================
+  demo complete — the graph remembers what the session forgets
+======================================================================
+{
+  "brief": "brief-demo-001",
+  "review": "review-43f7e595",
+  "payment": "pay-27ba6c13",
+  "claims_recalled": 3
+}
