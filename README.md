@@ -84,6 +84,12 @@ The schema (`schema/schema.cypher`) is documentation-plus-indexes: the
 layer creates what it needs with MERGE, so the demo runs on a fresh
 server with no setup step.
 
+## Demo video
+
+44 seconds, terminal-capture style: [`demo/demo-video-20261016.mp4`](demo/demo-video-20261016.mp4)
+— buyer requests → brief + provenance → North reviews → payment →
+treasury edge → session-two recall from the graph → the money query.
+
 ## Integrity
 
 - Nothing entered the graph before the hackathon window opened.
