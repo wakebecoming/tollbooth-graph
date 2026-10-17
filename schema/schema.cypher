@@ -33,20 +33,18 @@ CREATE INDEX FOR (s:Source) ON (s.url);
 // (:Session  {id, date, kind, notes})            // morning touch, build sit, deep letter, review pass
 // (:Memory   {id, kind, text, created_at})       // session memory: decision | fact | open_loop
 // (:Brief    {id, topic, created_at, price_usdc, status})  // status: draft|in_review|approved|delivered
-// (:Claim    {id, text, status, verified_at})    // status: unverified|verified|stale
+// (:Claim    {id, text, status, verified_at, support_mode, support_indexes})
+//             // status: unverified|verified — staleness is a QUERY, not a state
+//             // support_mode: explicit|inherited — how the SUPPORTED_BY edges
+//             // were chosen, recorded on the node at write time
 // (:Source   {id, url, kind, fetched_at})        // kind: doc|api|wire|ledger
-// (:Review   {id, verdict, changed, changed_why, reviewed_at})
+// (:Review   {id, reviewed_at})   // verdict props live on the REVIEWS edge
 //             // verdict: approved|approved_with_changes|rejected
 //             // changed: what the review changed ("" = nothing changed — recorded honestly)
 // (:Buyer    {id, handle, first_seen})
 // (:Payment  {id, usdc, tx_hash, settled_at, rail})  // rail: x402/base
 // (:Treasury {name, balance_usdc, policy})
 // (:Handoff  {id, text, created_at})
-// (:Attempt  {id, action, trigger, status, outcome, related_id, at})
-//             // status: completed|failed|rejected — the attempt layer.
-//             // An agent that holds humans to follow-through is held to the
-//             // same standard: tried things land in the graph, including the
-//             // ones that failed.
 //
 // ---- edges ----
 //
@@ -59,10 +57,6 @@ CREATE INDEX FOR (s:Source) ON (s.url);
 //   (Review)-[:REVIEWS {verdict, changed, changed_why}]->(Brief)
 //   (Agent)-[:VERIFIED {at}]->(Claim)            // who verified it, and when
 //   (Agent)-[:HANDED_OFF]->(Handoff)-[:TO]->(Agent)
-//   (Agent)-[:ATTEMPTED {at}]->(Attempt)         // the attempt layer:
-//                                               // trigger -> attempt -> outcome,
-//                                               // failure recorded as failed,
-//                                               // never smoothed over
 //
 // Brief provenance:
 //   (Brief)-[:CONTAINS]->(Claim)
@@ -89,9 +83,12 @@ CREATE INDEX FOR (s:Source) ON (s.url);
 //        r.verdict, r.changed, r.changed_why, a.name
 // ORDER BY vf.at DESC;
 //
-// ---- the stale-verification query (second demo query) ----
+// ---- the integrity query: effective freshness (second demo query) ----
 //
-// MATCH (c:Claim)<-[vf:VERIFIED]-(a:Agent)
-// WHERE vf.at < $cutoff AND c.status = 'verified'
-// RETURN c.text, a.name, vf.at
-// ORDER BY vf.at ASC;
+// An unmapped ('inherited') claim resting on everything inherits the
+// weakest timestamp in its transitive support web — VERIFIED edge times
+// and Source fetched_at, claim-on-claim support traversed. Unverified
+// claims are excluded: unverified is not stale, a different honesty.
+//
+// effective_freshness(c) = min over the support web; stale if older than
+// the cutoff. The demo returns the number, not just the flag.
