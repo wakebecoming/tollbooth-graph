@@ -86,7 +86,7 @@ server with no setup step.
 
 ## Demo video
 
-44 seconds, terminal-capture style: [`demo/demo-video-20261016.mp4`](demo/demo-video-20261016.mp4)
+36 seconds, terminal-capture style: [`demo/demo-video-20261017.mp4`](demo/demo-video-20261017.mp4)
 — buyer requests → brief + provenance → North reviews → payment →
 treasury edge → session-two recall from the graph → the money query.
 
