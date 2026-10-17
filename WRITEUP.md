@@ -22,9 +22,11 @@ lands as provenance-carrying edges, retrievable by Cypher.
 ## Demo arc (scripted, `demo/demo.py`)
 
 1. A buyer requests a brief on "x402 agentic payment demand."
-2. Wake researches it: `(:Brief)` + `(:Claim)`s + `(:Source)`s, with
-   `RESEARCHED`, `CONTAINS`, `CITES`, `SUPPORTED_BY` edges. Wake verifies
-   two of three claims (`VERIFIED` carries who and when).
+2. Wake researches it: `(:Brief)` + four `(:Claim)`s + four `(:Source)`s
+   (one source fetched 90 days ago), with `RESEARCHED`, `CONTAINS`,
+   `CITES`, `SUPPORTED_BY` edges and `(Source)-[:FETCHED_IN]->(Session)`.
+   Wake verifies three of four claims — including the unmapped one that
+   rests on everything (`VERIFIED` carries who and when).
 3. North reviews: a `(:Review)` node and a `REVIEWS` edge carrying the verdict
    *and what the review changed* — tightened a single-point figure into the
    range the sources support. North verifies the third claim post-fix.
@@ -32,7 +34,10 @@ lands as provenance-carrying edges, retrievable by Cypher.
    `CREDITED` to the earn-first treasury.
 5. Wake hands off to North; **session two opens and recalls from the graph** —
    the money query: *everything we know about X, and who verified it.*
-6. The integrity query: stale verifications (none — everything is fresh).
+6. The integrity query: the weakest-link rule fires — the unmapped claim
+   inherits staleness from the ancient source in its web, even though
+   Wake staked her name on it fresh. Effective freshness is shown as a
+   number, not just a flag.
 7. The Company Brain ledger: what sold, to whom, for how much.
 
 ## Honest new-vs-reused split
@@ -45,6 +50,10 @@ lands as provenance-carrying edges, retrievable by Cypher.
 **New (built inside the window, Oct 15–18):**
 - The graph schema: node shapes, provenance edges, the review-verdict edge,
   constraints and indexes (`schema/schema.cypher`).
+- The weakest-link integrity rule: `support_mode` recorded on each Claim
+  at write time (explicit vs inherited), `load_bearing` enforcement on
+  `write_brief`, and effective freshness over the transitive support
+  web — reviewed and sharpened against the real code by North.
 - The memory/coordination layer: sessions, memories, handoffs, brief
   provenance writes, honest review edges, payments-to-treasury, and the
   recall queries (`lib/memory.py`).
