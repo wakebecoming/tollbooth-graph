@@ -11,7 +11,9 @@ The arc, end to end:
      CREDITED to the earn-first treasury. Company Brain sees it.
   4. Session two: a new session opens and recalls from the graph —
      the money query: "everything we know about X and who verified it."
-  5. The integrity query: stale verifications — nothing hidden.
+  5. The integrity query: the weakest-link rule fires — one unmapped claim
+     resting on everything inherits staleness from an ancient source in
+     its web. Effective freshness shown as a number, not just a flag.
 
 All demo data is synthetic and labeled as such. Real Tollbooth rails
 (brief engine, x402/USDC) are reused and cited in WRITEUP.md; the graph
@@ -21,6 +23,7 @@ schema, this layer, and the demo are new work done inside the window.
 import sys
 import os
 import json
+from datetime import datetime, timezone, timedelta
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "lib"))
 import memory as M
@@ -30,6 +33,22 @@ def section(title):
     print("\n" + "=" * 70)
     print("  " + title)
     print("=" * 70)
+
+
+def ancient_iso(days=90):
+    return (datetime.now(timezone.utc) - timedelta(days=days)
+            ).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def claim_id_by_text(g, bid, prefix):
+    rows = g.query(
+        "MATCH (b:Brief {id: $bid})-[:CONTAINS]->(c:Claim) "
+        "RETURN c.id, c.text",
+        {"bid": bid}).result_set
+    for cid, text in rows:
+        if text.startswith(prefix):
+            return cid
+    raise RuntimeError("claim not found: %r" % prefix)
 
 
 def main():
@@ -53,31 +72,47 @@ def main():
         g, "Wake", topic,
         claims=[
             {"text": "138M+ x402 payments settled on Base through Q3 2026 (demo figure).",
-             "sources": [0]},
+             "sources": [0], "load_bearing": True},
             {"text": "Only 0.6-7.5% of screened commerce volume looked genuinely agentic (demo figure).",
              "sources": [1]},
             {"text": "246 of 37,292 listed x402 resources show real demand (demo figure).",
              "sources": [2]},
+            # the fourth claim names no sources: it rests on everything.
+            # support_mode='inherited' is recorded on the node — the
+            # weakest-link rule will price the laziness.
+            {"text": "Agentic share of screened commerce is climbing quarter over quarter (demo figure)."},
         ],
         sources=[
             {"url": "demo://chainalysis-q3-2026", "kind": "doc"},
             {"url": "demo://trm-labs-screen", "kind": "doc"},
             {"url": "demo://saylor-resource-census", "kind": "doc"},
+            {"url": "demo://legacy-panel-2024", "kind": "doc",
+             "fetched_at": ancient_iso(90)},
         ],
         price_usdc=5.0,
         provenance="graph-hacks-window",
         brief_id="brief-demo-001",
+        # the lazy default is exercised on purpose here — and signs
+        # for itself, on the record, not in the walls.
+        load_bearing=False,
+        relaxed_reason=("demo exercises the inherited default: one unmapped "
+                        "claim so the weakest-link rule has something to price"),
+        session_id="session-001",
     )
-    # Wake stakes her name on two of the three claims
-    claims = g.query(
-        "MATCH (b:Brief {id: $bid})-[:CONTAINS]->(c:Claim) RETURN c.id",
-        {"bid": bid}).result_set
-    for row in claims[:2]:
-        M.verify_claim(g, "Wake", row[0])
+    c138 = claim_id_by_text(g, bid, "138M+")
+    cagentic = claim_id_by_text(g, bid, "Only 0.6")
+    c246 = claim_id_by_text(g, bid, "246 of")
+    cclimb = claim_id_by_text(g, bid, "Agentic share")
+    # Wake stakes her name on the two mapped claims AND the unmapped one —
+    # the integrity query will price the unmapped one anyway.
+    M.verify_claim(g, "Wake", c138)
+    M.verify_claim(g, "Wake", cagentic)
+    M.verify_claim(g, "Wake", cclimb)
     M.remember(g, "session-001", "fact",
-               "Brief brief-demo-001 drafted on '%s'; 2 of 3 claims verified by Wake." % topic,
+               "Brief brief-demo-001 drafted on '%s'; 3 of 4 claims verified by Wake (incl. the unmapped one)." % topic,
                about_brief_id=bid)
-    print("brief:", bid, "| claims: 3 | sources: 3 | Wake verified 2")
+    print("brief:", bid, "| claims: 4 | sources: 4 | Wake verified 3 "
+          "(2 explicit-mapped, 1 unmapped)")
 
     # ---- 2. North reviews ----
     section("2. North reviews — the verdict edge carries what changed")
@@ -88,36 +123,16 @@ def main():
         changed_why="A single-point figure would overclaim; the range is what the (demo) sources support.",
     )
     # North verifies the remaining claim after the fix
-    M.verify_claim(g, "North", claims[2][0])
+    M.verify_claim(g, "North", c246)
     M.remember(g, "session-001", "decision",
                "North approved brief-demo-001 with changes; third claim verified by North post-fix.",
                about_brief_id=bid)
     print("review:", rid, "| verdict: approved_with_changes")
 
     # ---- 3. buyer pays; treasury edge ----
-    # The attempt layer (alert-log standard): the first settle fails on the
-    # demo rail — insufficient USDC — and lands in the graph as failed,
-    # not as absence. The retry succeeds and is recorded as completed.
-    section("3. buyer pays (x402/USDC, demo rail) — one honest failure first")
-    M.record_attempt(
-        g, "Wake", "settle payment",
-        trigger="buyer demo-buyer-01 paid 5.0 USDC for brief-demo-001",
-        status="failed",
-        outcome="demo rail rejected the first settle: insufficient USDC "
-                "in the demo wallet. Retrying with funded wallet.",
-        related_id=bid,
-    )
-    print("  attempt 1: FAILED — insufficient USDC on the demo rail (recorded, not hidden)")
+    section("3. buyer pays (x402/USDC, demo rail) — treasury sees it")
     pid = M.record_payment(g, "demo-buyer-01", bid, 5.0,
                            tx_hash="demo-tx-0xabc123")
-    M.record_attempt(
-        g, "Wake", "settle payment",
-        trigger="buyer demo-buyer-01 paid 5.0 USDC for brief-demo-001",
-        status="completed",
-        outcome="settled: 5.0 USDC credited to earn-first-treasury "
-                "(demo-tx-0xabc123).",
-        related_id=pid,
-    )
     M.remember(g, "session-001", "fact",
                "5.0 USDC settled for brief-demo-001 (demo-tx-0xabc123); treasury credited.",
                about_brief_id=bid)
@@ -146,11 +161,13 @@ def main():
         print()
 
     # ---- 5. the integrity query ----
-    section("5. the integrity query — stale verifications (30d)")
+    section("5. the integrity query — the weakest-link rule fires")
     stale = M.stale_verifications(g, days=30)
     if stale:
         for s in stale:
-            print("  STALE:", s["claim"][:70], "| by", s["verified_by"], "| at", s["verified_at"])
+            print("  STALE (inherited):", s["claim"][:70])
+            print("    support_mode:", s["support_mode"],
+                  "| effective freshness:", s["effective_freshness"])
     else:
         print("  none — every verification in this graph is fresh.")
 
@@ -162,7 +179,8 @@ def main():
 
     section("demo complete — the graph remembers what the session forgets")
     print(json.dumps({"brief": bid, "review": rid, "payment": pid,
-                      "claims_recalled": len(rows)}, indent=2))
+                      "claims_recalled": len(rows),
+                      "stale_flagged": len(stale)}, indent=2))
 
 
 if __name__ == "__main__":
