@@ -1,0 +1,83 @@
+
+======================================================================
+  0. the pair, the treasury, session one
+======================================================================
+agents: Wake, North | treasury: earn-first-treasury | session-001 open
+
+======================================================================
+  1. buyer requests a brief — Wake researches, provenance lands
+======================================================================
+brief: brief-demo-001 | claims: 4 | sources: 4 | Wake verified 3 (2 explicit-mapped, 1 unmapped)
+
+======================================================================
+  2. North reviews — the verdict edge carries what changed
+======================================================================
+review: review-d0fe9ace | verdict: approved_with_changes
+
+======================================================================
+  3. buyer pays (x402/USDC, demo rail) — treasury sees it
+======================================================================
+payment: pay-173df4b6 | 5.0 USDC -> earn-first-treasury
+
+======================================================================
+  4. session two — recall from the graph, not from memory
+======================================================================
+query: everything we know about "x402 agentic payment demand", and who verified it
+
+  CLAIM   : 138M+ x402 payments settled on Base through Q3 2026 (demo figure).
+  status  : verified | verified by: Wake | at: 2026-10-17T16:57:41Z
+  source  : demo://chainalysis-q3-2026
+  review  : approved_with_changes | changed: Tightened the demand figure: headline said 7.5%, body now carries the full 0.6-7
+
+  CLAIM   : Only 0.6-7.5% of screened commerce volume looked genuinely agentic (demo figure)
+  status  : verified | verified by: Wake | at: 2026-10-17T16:57:41Z
+  source  : demo://trm-labs-screen
+  review  : approved_with_changes | changed: Tightened the demand figure: headline said 7.5%, body now carries the full 0.6-7
+
+  CLAIM   : 246 of 37,292 listed x402 resources show real demand (demo figure).
+  status  : verified | verified by: North | at: 2026-10-17T16:57:41Z
+  source  : demo://saylor-resource-census
+  review  : approved_with_changes | changed: Tightened the demand figure: headline said 7.5%, body now carries the full 0.6-7
+
+  CLAIM   : Agentic share of screened commerce is climbing quarter over quarter (demo figure
+  status  : verified | verified by: Wake | at: 2026-10-17T16:57:41Z
+  source  : demo://chainalysis-q3-2026
+  review  : approved_with_changes | changed: Tightened the demand figure: headline said 7.5%, body now carries the full 0.6-7
+
+  CLAIM   : Agentic share of screened commerce is climbing quarter over quarter (demo figure
+  status  : verified | verified by: Wake | at: 2026-10-17T16:57:41Z
+  source  : demo://trm-labs-screen
+  review  : approved_with_changes | changed: Tightened the demand figure: headline said 7.5%, body now carries the full 0.6-7
+
+  CLAIM   : Agentic share of screened commerce is climbing quarter over quarter (demo figure
+  status  : verified | verified by: Wake | at: 2026-10-17T16:57:41Z
+  source  : demo://saylor-resource-census
+  review  : approved_with_changes | changed: Tightened the demand figure: headline said 7.5%, body now carries the full 0.6-7
+
+  CLAIM   : Agentic share of screened commerce is climbing quarter over quarter (demo figure
+  status  : verified | verified by: Wake | at: 2026-10-17T16:57:41Z
+  source  : demo://legacy-panel-2024
+  review  : approved_with_changes | changed: Tightened the demand figure: headline said 7.5%, body now carries the full 0.6-7
+
+
+======================================================================
+  5. the integrity query — the weakest-link rule fires
+======================================================================
+  STALE (inherited): Agentic share of screened commerce is climbing quarter over quarter (d
+    support_mode: inherited | effective freshness: 2026-07-19T16:57:41Z
+
+======================================================================
+  6. company brain — the treasury ledger
+======================================================================
+  demo-buyer-01 bought 'x402 agentic payment demand' for 5.0 USDC (tx demo-tx-0xabc123)
+
+======================================================================
+  demo complete — the graph remembers what the session forgets
+======================================================================
+{
+  "brief": "brief-demo-001",
+  "review": "review-d0fe9ace",
+  "payment": "pay-173df4b6",
+  "claims_recalled": 7,
+  "stale_flagged": 1
+}
